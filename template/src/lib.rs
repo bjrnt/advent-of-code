@@ -11,7 +11,7 @@ mod tests {
     use super::*;
 
     const EXAMPLE_INPUT: &str = "";
-    const EXAMPLE_INPUTS: [(&str, &str, &str); 1] = [("", "", "")];
+    const EXAMPLE_INPUTS: [(&str, &str, &str); 0] = [];
 
     #[test]
     fn part1() {
@@ -19,7 +19,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn part1_inputs() {
         for (input, answer_part1, _) in EXAMPLE_INPUTS.iter() {
             assert_eq!(process_part1(input), answer_part1.to_string());
