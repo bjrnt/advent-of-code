@@ -1,3 +1,6 @@
+use std::collections::HashSet;
+
+use itertools::Itertools;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -13,48 +16,56 @@ enum Instruction {
     Noop,
 }
 
-fn parse_addx(input: &str) -> IResult<&str, Instruction> {
-    let (input, val) = preceded(tag("addx "), complete::i32)(input)?;
-    Ok((input, Instruction::Addx(val)))
+impl Instruction {
+    fn cycles(&self) -> u32 {
+        match self {
+            Addx(_) => 2,
+            Noop => 1,
+        }
+    }
 }
+
+use Instruction::*;
 
 fn parse_instructions(input: &str) -> IResult<&str, Vec<Instruction>> {
     let (input, instructions) = separated_list1(
         newline,
-        alt((tag("noop").map(|_| Instruction::Noop), parse_addx)),
+        alt((
+            tag("noop").map(|_| Noop),
+            preceded(tag("addx "), complete::i32).map(|v| Addx(v)),
+        )),
     )(input)?;
     return Ok((input, instructions));
 }
 
 pub fn process_part1(input: &str) -> String {
-    const MEASURE_SIGNAL_STRENGTH_AT: [i32; 6] = [20, 60, 100, 140, 180, 220];
+    let measure_signal_strength_at: HashSet<i32> = HashSet::from([20, 60, 100, 140, 180, 220]);
     let (_, ins) = parse_instructions(input).unwrap();
+
     let mut instructions = ins.iter();
-    let mut x_register: i32 = 1;
+    let mut x: i32 = 1;
     let mut current_instruction = None;
-    let mut cycles_remaining: u8 = 0;
+    let mut cycles_remaining: u32 = 0;
     let mut signal_strengths: Vec<i32> = vec![];
+
     for cycle in 1.. {
         if current_instruction.is_none() {
             current_instruction = instructions.next();
             cycles_remaining = match current_instruction {
-                Some(instr) => match instr {
-                    Instruction::Addx(_) => 2,
-                    Instruction::Noop => 1,
-                },
+                Some(instr) => instr.cycles(),
                 None => break,
             };
         }
 
-        if MEASURE_SIGNAL_STRENGTH_AT.contains(&cycle) {
-            signal_strengths.push(cycle * x_register);
+        if measure_signal_strength_at.contains(&cycle) {
+            signal_strengths.push(cycle * x);
         }
 
         cycles_remaining -= 1;
 
         if cycles_remaining == 0 {
             match current_instruction.unwrap() {
-                Instruction::Addx(val) => x_register += val,
+                Instruction::Addx(val) => x += val,
                 Instruction::Noop => (),
             }
             current_instruction = None;
@@ -66,26 +77,25 @@ pub fn process_part1(input: &str) -> String {
 
 pub fn process_part2(input: &str) -> String {
     let (_, ins) = parse_instructions(input).unwrap();
+
     let mut crt: [char; 40 * 6] = ['.'; 40 * 6];
 
     let mut instructions = ins.iter();
-    let mut x_register: i32 = 1;
+    let mut x: i32 = 1;
     let mut current_instruction = None;
-    let mut cycles_remaining: u8 = 0;
+    let mut cycles_remaining: u32 = 0;
+
     for cycle in 1.. {
         if current_instruction.is_none() {
             current_instruction = instructions.next();
             cycles_remaining = match current_instruction {
-                Some(instr) => match instr {
-                    Instruction::Addx(_) => 2,
-                    Instruction::Noop => 1,
-                },
+                Some(instr) => instr.cycles(),
                 None => break,
             };
         }
 
         let crt_pos: usize = cycle - 1;
-        if ((crt_pos % 40) as i32 - x_register).abs() <= 1 {
+        if ((crt_pos % 40) as i32 - x).abs() <= 1 {
             crt[crt_pos] = '#';
         }
 
@@ -93,16 +103,17 @@ pub fn process_part2(input: &str) -> String {
 
         if cycles_remaining == 0 {
             match current_instruction.unwrap() {
-                Instruction::Addx(val) => x_register += val,
-                Instruction::Noop => (),
+                Addx(val) => x += val,
+                Noop => (),
             }
             current_instruction = None;
         }
     }
 
     crt.chunks(40)
-        .map(|row| row.iter().collect::<String>() + "\n")
-        .collect::<String>()
+        .into_iter()
+        .map(|row| row.iter().collect::<String>())
+        .join("\n")
 }
 
 #[cfg(test)]
@@ -279,8 +290,7 @@ noop";
 ####....####....####....####....####....
 #####.....#####.....#####.....#####.....
 ######......######......######......####
-#######.......#######.......#######.....
-"
+#######.......#######.......#######....."
         );
     }
 
