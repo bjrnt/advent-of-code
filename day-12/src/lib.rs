@@ -1,15 +1,16 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 
 pub fn process_part1(input: &str) -> String {
-    let grid_height = input.lines().count();
-    let grid_width = input.find('\n').unwrap();
+    let grid_height = input.lines().count() as i32;
+    let grid_width = input.find('\n').unwrap() as i32;
 
     let mut start = None;
     let mut end = None;
-    let mut grid = HashMap::new();
+    let mut grid = HashMap::with_capacity((grid_height * grid_width) as usize);
 
     for (y, line) in input.lines().enumerate() {
         for (x, c) in line.chars().enumerate() {
+            let (x, y) = (x as i32, y as i32);
             grid.insert(
                 (x, y),
                 match c {
@@ -32,7 +33,8 @@ pub fn process_part1(input: &str) -> String {
 
     let mut min_steps_to_goal = None;
     let mut seen = HashSet::from([(0, 0)]);
-    let mut next_positions: VecDeque<((usize, usize), usize)> = VecDeque::from([(start, 0)]);
+    let mut next_positions = VecDeque::from([(start, 0)]);
+
     while let Some(((cx, cy), steps)) = next_positions.pop_front() {
         if (cx, cy) == end {
             min_steps_to_goal = Some(steps);
@@ -40,44 +42,34 @@ pub fn process_part1(input: &str) -> String {
         }
         let current_height = *grid.get(&(cx, cy)).unwrap();
 
-        let mut neighbors = vec![];
-        if cx >= 1 {
-            neighbors.push((cx - 1, cy));
-        }
-        if cx < grid_width - 1 {
-            neighbors.push((cx + 1, cy));
-        }
-        if cy >= 1 {
-            neighbors.push((cx, cy - 1));
-        }
-        if cy < grid_height - 1 {
-            neighbors.push((cx, cy + 1));
-        }
-
-        for neighbor in neighbors
+        [(cx - 1, cy), (cx + 1, cy), (cx, cy - 1), (cx, cy + 1)]
             .iter()
-            .filter(|neighbor| (*grid.get(neighbor).unwrap() as i32 - current_height as i32) <= 1)
-        {
-            if !seen.contains(neighbor) {
-                next_positions.push_back((*neighbor, steps + 1));
-                seen.insert(*neighbor);
-            }
-        }
+            .filter(|&&(x, y)| {
+                grid.get(&(x, y))
+                    .map(|height| *height as i32 - current_height as i32 <= 1)
+                    .unwrap_or(false)
+            })
+            .for_each(|neighbor| {
+                if seen.insert(*neighbor) {
+                    next_positions.push_back((*neighbor, steps + 1));
+                }
+            });
     }
 
     min_steps_to_goal.unwrap().to_string()
 }
 
 pub fn process_part2(input: &str) -> String {
-    let grid_height = input.lines().count();
-    let grid_width = input.find('\n').unwrap();
+    let grid_height = input.lines().count() as i32;
+    let grid_width = input.find('\n').unwrap() as i32;
 
     let mut starts = vec![];
     let mut end = None;
-    let mut grid = HashMap::with_capacity(grid_height * grid_width);
+    let mut grid = HashMap::with_capacity((grid_height * grid_width) as usize);
 
     for (y, line) in input.lines().enumerate() {
         for (x, c) in line.chars().enumerate() {
+            let (x, y) = (x as i32, y as i32);
             grid.insert(
                 (x, y),
                 match c {
@@ -99,10 +91,19 @@ pub fn process_part2(input: &str) -> String {
 
     starts
         .iter()
+        .filter(|&&(sx, sy)| {
+            // potential starts surrounded by other starts can't have shorter paths than one of their neighbors
+            [(sx - 1, sy), (sx + 1, sy), (sx, sy - 1), (sx, sy + 1)]
+                .iter()
+                .all(|&(x, y)| {
+                    grid.get(&(x, y))
+                        .map(|height| *height == 0)
+                        .unwrap_or(false)
+                })
+        })
         .filter_map(|start| {
-            let mut seen: HashSet<(usize, usize)> = HashSet::from([*start]);
-            let mut next_positions: VecDeque<((usize, usize), usize)> =
-                VecDeque::from([(*start, 0)]);
+            let mut seen = HashSet::from([*start]);
+            let mut next_positions = VecDeque::from([(*start, 0)]);
 
             while let Some(((cx, cy), steps)) = next_positions.pop_front() {
                 if (cx, cy) == end {
@@ -111,28 +112,19 @@ pub fn process_part2(input: &str) -> String {
 
                 let current_height = *grid.get(&(cx, cy)).unwrap();
 
-                let mut neighbors = vec![];
-                if cx >= 1 {
-                    neighbors.push((cx - 1, cy));
-                }
-                if cx < grid_width - 1 {
-                    neighbors.push((cx + 1, cy));
-                }
-                if cy >= 1 {
-                    neighbors.push((cx, cy - 1));
-                }
-                if cy < grid_height - 1 {
-                    neighbors.push((cx, cy + 1));
-                }
-
-                for neighbor in neighbors.iter().filter(|neighbor| {
-                    (*grid.get(neighbor).unwrap() as i32 - current_height as i32) <= 1
-                }) {
-                    if !seen.contains(neighbor) {
-                        next_positions.push_back((*neighbor, steps + 1));
-                        seen.insert(*neighbor);
-                    }
-                }
+                [(cx - 1, cy), (cx + 1, cy), (cx, cy - 1), (cx, cy + 1)]
+                    .iter()
+                    .filter(|&&(x, y)| {
+                        grid.get(&(x, y))
+                            .map(|height| *height as i32 - current_height as i32 <= 1)
+                            .unwrap_or(false)
+                    })
+                    .for_each(|neighbor| {
+                        if seen.insert(*neighbor) {
+                            next_positions.push_back((*neighbor, steps + 1));
+                            seen.insert(*neighbor);
+                        }
+                    });
             }
             None
         })
