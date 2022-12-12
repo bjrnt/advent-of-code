@@ -89,48 +89,28 @@ pub fn process_part2(input: &str) -> String {
 
     let end = end.expect("couldn't find end");
 
-    starts
-        .iter()
-        .filter(|&&(sx, sy)| {
-            // potential starts surrounded by other starts can't have shorter paths than one of their neighbors
-            [(sx - 1, sy), (sx + 1, sy), (sx, sy - 1), (sx, sy + 1)]
-                .iter()
-                .all(|&(x, y)| {
-                    grid.get(&(x, y))
-                        .map(|height| *height == 0)
-                        .unwrap_or(false)
-                })
-        })
-        .filter_map(|start| {
-            let mut seen = HashSet::from([*start]);
-            let mut next_positions = VecDeque::from([(*start, 0)]);
+    let mut next_positions = VecDeque::from_iter(starts.iter().map(|s| (*s, 0)));
+    let mut seen: HashSet<(i32, i32)> = HashSet::from_iter(starts.into_iter());
 
-            while let Some(((cx, cy), steps)) = next_positions.pop_front() {
-                if (cx, cy) == end {
-                    return Some(steps);
-                }
+    while let Some(((cx, cy), steps)) = next_positions.pop_front() {
+        if (cx, cy) == end {
+            return steps.to_string();
+        }
+        let current_height = *grid.get(&(cx, cy)).unwrap();
 
-                let current_height = *grid.get(&(cx, cy)).unwrap();
-
-                [(cx - 1, cy), (cx + 1, cy), (cx, cy - 1), (cx, cy + 1)]
-                    .iter()
-                    .filter(|&&(x, y)| {
-                        grid.get(&(x, y))
-                            .map(|height| *height as i32 - current_height as i32 <= 1)
-                            .unwrap_or(false)
-                    })
-                    .for_each(|neighbor| {
-                        if seen.insert(*neighbor) {
-                            next_positions.push_back((*neighbor, steps + 1));
-                            seen.insert(*neighbor);
-                        }
-                    });
-            }
-            None
-        })
-        .min()
-        .unwrap()
-        .to_string()
+        [(cx - 1, cy), (cx + 1, cy), (cx, cy - 1), (cx, cy + 1)]
+            .into_iter()
+            .filter(|p| {
+                grid.get(p)
+                    .map(|height| *height as i32 - current_height as i32 <= 1)
+                    .unwrap_or(false)
+                    && seen.insert(*p)
+            })
+            .for_each(|neighbor| {
+                next_positions.push_back((neighbor, steps + 1));
+            });
+    }
+    return "no path found".to_string();
 }
 
 #[cfg(test)]
