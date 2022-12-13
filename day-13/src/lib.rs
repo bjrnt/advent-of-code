@@ -12,21 +12,10 @@ use nom::{
 
 use Packet::*;
 
-#[derive(Debug, Clone, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 enum Packet {
     List(Vec<Packet>),
     Value(u32),
-}
-
-impl PartialEq for Packet {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (List(l), List(r)) => l == r,
-            (Value(l), Value(r)) => l == r,
-            (l @ Value(_), List(r)) => &vec![l.clone()] == r,
-            (List(l), r @ Value(_)) => l == &vec![r.clone()],
-        }
-    }
 }
 
 impl PartialOrd for Packet {
