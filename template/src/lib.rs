@@ -1,3 +1,6 @@
+mod utils;
+use utils::*;
+
 pub fn process_part1(input: &str) -> String {
     "".to_string()
 }
