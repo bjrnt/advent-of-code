@@ -6,13 +6,10 @@ use nom::{
     sequence::separated_pair, IResult,
 };
 
-mod utils;
-use utils::*;
-
 const SAND_SPAWN_POS: (u32, u32) = (500, 0);
 
-fn parse_paths(input: &str) -> IResult<&str, Vec<Vec<(u32, u32)>>> {
-    separated_list1(
+fn parse_rocks(input: &str) -> IResult<&str, impl Iterator<Item = (u32, u32)>> {
+    let (input, path_pairs) = separated_list1(
         newline,
         separated_list1(
             tag(" -> "),
@@ -22,31 +19,27 @@ fn parse_paths(input: &str) -> IResult<&str, Vec<Vec<(u32, u32)>>> {
                 nom::character::complete::u32,
             ),
         ),
-    )(input)
-}
+    )(input)?;
 
-fn straight_line(from: &(u32, u32), to: &(u32, u32)) -> Vec<(u32, u32)> {
-    if from.1 != to.1 {
-        let (min_y, max_y) = minmax(from.1, to.1);
-        (min_y..=max_y).map(|y| (from.0, y)).collect::<Vec<_>>()
-    } else {
-        let (min_x, max_x) = minmax(from.0, to.0);
-        ((min_x..=max_x).map(|x| (x, from.1))).collect::<Vec<_>>()
-    }
+    // Have to use into_iter or the values won't live long enough
+    let rocks_iter = path_pairs.into_iter().flat_map(|path| {
+        path.into_iter()
+            .tuple_windows()
+            .flat_map(|((ax, ay), (bx, by))| {
+                (ax.min(bx)..=ax.max(bx)).cartesian_product(ay.min(by)..=ay.max(by))
+            })
+    });
+
+    Ok((input, rocks_iter))
 }
 
 pub fn process_part1(input: &str) -> String {
-    let (_, rock_paths) = parse_paths(input).unwrap();
+    let (_, rocks) = parse_rocks(input).unwrap();
 
-    let mut grid: HashSet<(u32, u32)> = HashSet::from_iter(
-        rock_paths
-            .iter()
-            .flat_map(|path| path.iter().tuple_windows::<(&(u32, u32), &(u32, u32))>())
-            .flat_map(|(from, to)| straight_line(from, to)),
-    );
+    let mut grid: HashSet<(u32, u32)> = HashSet::from_iter(rocks);
+    let rock_count = grid.len();
 
-    let max_y = rock_paths.iter().flatten().map(|p| p.1).max().unwrap();
-    let mut sand_count = 0;
+    let max_y = *grid.iter().map(|(_, y)| y).max().unwrap();
 
     loop {
         let (mut sand_x, mut sand_y) = SAND_SPAWN_POS;
@@ -62,7 +55,6 @@ pub fn process_part1(input: &str) -> String {
                 sand_x += 1;
             } else {
                 grid.insert((sand_x, sand_y));
-                sand_count += 1;
                 break;
             }
         }
@@ -72,21 +64,18 @@ pub fn process_part1(input: &str) -> String {
             break;
         }
     }
-    sand_count.to_string()
+
+    (grid.len() - rock_count).to_string()
 }
 
 pub fn process_part2(input: &str) -> String {
-    let (_, rock_paths) = parse_paths(input).unwrap();
+    let (_, rocks) = parse_rocks(input).unwrap();
 
-    let mut grid: HashSet<(u32, u32)> = HashSet::from_iter(
-        rock_paths
-            .iter()
-            .flat_map(|path| path.iter().tuple_windows::<(&(u32, u32), &(u32, u32))>())
-            .flat_map(|(from, to)| straight_line(from, to)),
-    );
+    let mut grid: HashSet<(u32, u32)> = HashSet::from_iter(rocks);
+    let rock_count = grid.len();
 
-    let max_y = 2 + rock_paths.iter().flatten().map(|p| p.1).max().unwrap();
-    let mut sand_count = 0;
+    // floor is 2 below highest y, so stop at 1 past
+    let max_y = 1 + grid.iter().map(|(_, y)| y).max().unwrap();
 
     loop {
         let (mut sand_x, mut sand_y) = SAND_SPAWN_POS;
@@ -95,23 +84,26 @@ pub fn process_part2(input: &str) -> String {
             if grid.get(&(sand_x, sand_y + 1)).is_none() {
                 sand_y += 1;
             } else if grid.get(&(sand_x - 1, sand_y + 1)).is_none() {
-                sand_y += 1;
                 sand_x -= 1;
-            } else if grid.get(&(sand_x + 1, sand_y + 1)).is_none() {
                 sand_y += 1;
+            } else if grid.get(&(sand_x + 1, sand_y + 1)).is_none() {
                 sand_x += 1;
+                sand_y += 1;
             } else {
                 grid.insert((sand_x, sand_y));
-                sand_count += 1;
                 break;
             }
         }
 
-        if (sand_x, sand_y) == SAND_SPAWN_POS {
+        if sand_y == max_y {
+            // stop sand if it hits the floor
+            grid.insert((sand_x, sand_y));
+        } else if (sand_x, sand_y) == SAND_SPAWN_POS {
             break;
         }
     }
-    sand_count.to_string()
+
+    (grid.len() - rock_count).to_string()
 }
 
 #[cfg(test)]
