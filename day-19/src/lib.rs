@@ -31,7 +31,6 @@ struct State {
     robot_clay: i32,
     robot_obsidian: i32,
     robot_geode: i32,
-    // actions: Vec<String>,
 }
 
 impl State {
@@ -92,17 +91,13 @@ pub fn process_part1(input: &str) -> String {
                 robot_clay: 0,
                 robot_obsidian: 0,
                 robot_geode: 0,
-                // actions: Vec::new(),
             };
 
-            let mut queue = VecDeque::from([initial_state]);
+            let mut stack = VecDeque::from([initial_state]);
             let mut best_geodes = 0;
 
-            while let Some(state) = queue.pop_front() {
+            while let Some(state) = stack.pop_back() {
                 if state.time_left == 0 {
-                    // if state.geode > best_geodes {
-                    // dbg!(blueprint.id, &state);
-                    // }
                     best_geodes = best_geodes.max(state.geode);
                     continue;
                 }
@@ -112,12 +107,7 @@ pub fn process_part1(input: &str) -> String {
                     let mut next_state = state.clone();
                     next_state.add_resources(state.time_left);
                     next_state.time_left = 0;
-                    // next_state.actions.push(format!(
-                    //     "{}: Waiting for {} minutes",
-                    //     total_time - state.time_left,
-                    //     state.time_left
-                    // ));
-                    queue.push_back(next_state);
+                    stack.push_back(next_state);
                 }
 
                 // build ore bot
@@ -133,12 +123,7 @@ pub fn process_part1(input: &str) -> String {
                     next_state.time_left -= time_required;
                     next_state.ore -= blueprint.ore_robot_cost_ore;
                     next_state.robot_ore += 1;
-                    // next_state.actions.push(format!(
-                    //     "{}: Building ore robot for {} minutes",
-                    //     total_time - state.time_left,
-                    //     time_required
-                    // ));
-                    queue.push_back(next_state);
+                    stack.push_back(next_state);
                 }
 
                 // build clay robot
@@ -155,12 +140,7 @@ pub fn process_part1(input: &str) -> String {
                     next_state.time_left -= time_required;
                     next_state.ore -= blueprint.clay_robot_cost_ore;
                     next_state.robot_clay += 1;
-                    // next_state.actions.push(format!(
-                    //     "{}: Building clay robot for {} minutes",
-                    //     total_time - state.time_left,
-                    //     time_required
-                    // ));
-                    queue.push_back(next_state);
+                    stack.push_back(next_state);
                 }
 
                 // build obsidian robot
@@ -187,12 +167,7 @@ pub fn process_part1(input: &str) -> String {
                         next_state.clay -= blueprint.obsidian_robot_cost_clay;
                         next_state.ore -= blueprint.obsidian_robot_cost_ore;
                         next_state.robot_obsidian += 1;
-                        // next_state.actions.push(format!(
-                        //     "{}: Building obsidian robot for {} minutes",
-                        //     total_time - state.time_left,
-                        //     time_required
-                        // ));
-                        queue.push_back(next_state);
+                        stack.push_back(next_state);
                     }
                 }
 
@@ -219,12 +194,7 @@ pub fn process_part1(input: &str) -> String {
                         next_state.ore -= blueprint.geode_robot_cost_ore;
                         next_state.obsidian -= blueprint.geode_robot_cost_obsidian;
                         next_state.robot_geode += 1;
-                        // next_state.actions.push(format!(
-                        //     "{}: Building geode robot for {} minutes",
-                        //     total_time - state.time_left,
-                        //     time_required
-                        // ));
-                        queue.push_back(next_state);
+                        stack.push_back(next_state);
                     }
                 }
             }
@@ -255,7 +225,7 @@ pub fn process_part2(input: &str) -> String {
                 robot_geode: 0,
             };
 
-            // there is never a need to gain more of a resource per turn than what can be spent
+            // there is never a need to gain more of a resource per turn than what can be spent, this greatly reduces the branching factor closer to the end of the simulation
             let max_ore_cost = blueprint
                 .ore_robot_cost_ore
                 .max(blueprint.clay_robot_cost_ore)
@@ -264,10 +234,10 @@ pub fn process_part2(input: &str) -> String {
             let max_clay_cost = blueprint.obsidian_robot_cost_clay;
             let max_obsidian_cost = blueprint.geode_robot_cost_obsidian;
 
-            let mut queue = VecDeque::from([initial_state]);
+            let mut stack = VecDeque::from([initial_state]);
             let mut best_geodes = 0;
 
-            while let Some(state) = queue.pop_front() {
+            while let Some(state) = stack.pop_back() {
                 if state.time_left == 0 {
                     best_geodes = best_geodes.max(state.geode as i64);
                     continue;
@@ -278,7 +248,7 @@ pub fn process_part2(input: &str) -> String {
                     let mut next_state = state.clone();
                     next_state.add_resources(state.time_left);
                     next_state.time_left = 0;
-                    queue.push_back(next_state);
+                    stack.push_back(next_state);
                 }
 
                 // build ore bot
@@ -296,7 +266,7 @@ pub fn process_part2(input: &str) -> String {
                         next_state.time_left -= time_required;
                         next_state.ore -= blueprint.ore_robot_cost_ore;
                         next_state.robot_ore += 1;
-                        queue.push_back(next_state);
+                        stack.push_back(next_state);
                     }
                 }
 
@@ -315,7 +285,7 @@ pub fn process_part2(input: &str) -> String {
                         next_state.time_left -= time_required;
                         next_state.ore -= blueprint.clay_robot_cost_ore;
                         next_state.robot_clay += 1;
-                        queue.push_back(next_state);
+                        stack.push_back(next_state);
                     }
                 }
 
@@ -344,7 +314,7 @@ pub fn process_part2(input: &str) -> String {
                             next_state.clay -= blueprint.obsidian_robot_cost_clay;
                             next_state.ore -= blueprint.obsidian_robot_cost_ore;
                             next_state.robot_obsidian += 1;
-                            queue.push_back(next_state);
+                            stack.push_back(next_state);
                         }
                     }
                 }
@@ -372,12 +342,11 @@ pub fn process_part2(input: &str) -> String {
                         next_state.ore -= blueprint.geode_robot_cost_ore;
                         next_state.obsidian -= blueprint.geode_robot_cost_obsidian;
                         next_state.robot_geode += 1;
-                        queue.push_back(next_state);
+                        stack.push_back(next_state);
                     }
                 }
             }
 
-            println!("{0}: {best_geodes}", blueprint.id);
             best_geodes
         })
         .product::<i64>()
@@ -390,7 +359,6 @@ mod tests {
 
     const EXAMPLE_INPUT: &str = "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.
 Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsidian robot costs 3 ore and 8 clay. Each geode robot costs 3 ore and 12 obsidian.";
-    const EXAMPLE_INPUTS: [(&str, &str, &str); 0] = [];
 
     #[test]
     fn part1() {
@@ -398,22 +366,7 @@ Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsid
     }
 
     #[test]
-    fn part1_inputs() {
-        for (input, answer_part1, _) in EXAMPLE_INPUTS.iter() {
-            assert_eq!(process_part1(input), answer_part1.to_string());
-        }
-    }
-
-    #[test]
     fn part2() {
         assert_eq!(process_part2(EXAMPLE_INPUT), "3472");
-    }
-
-    #[test]
-    #[ignore]
-    fn part2_inputs() {
-        for (input, _, answer_part_2) in EXAMPLE_INPUTS.iter() {
-            assert_eq!(process_part2(input), answer_part_2.to_string());
-        }
     }
 }
