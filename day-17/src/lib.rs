@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 const SHAPES: [&str; 5] = [
     "####",
     " #
@@ -75,20 +77,39 @@ fn collides(a: i64, b: i64) -> bool {
 fn process_shapes(input: &str, num_shapes: i64) -> String {
     let pushes = parse_pushes(input);
 
-    let mut pushes = pushes.iter().cycle();
-    let mut shapes = SHAPES.into_iter().map(parse_shape).cycle();
+    let mut cache: HashMap<(usize, usize, Vec<i64>), (i64, i64)> = HashMap::new();
+
+    let mut pushes = pushes.iter().enumerate().cycle();
+    let mut shapes = SHAPES.into_iter().map(parse_shape).enumerate().cycle();
     let mut grid: Vec<i64> = vec![0];
 
     let mut max_y: i64 = 0;
+    let mut max_y_offset: i64 = 0;
+    let mut n_shapes = 0;
 
-    for _ in (1 as i64)..=num_shapes {
+    while n_shapes < num_shapes {
         // print_grid(&grid);
 
-        let c_shape = shapes.next().unwrap();
+        let (shape_idx, c_shape) = shapes.next().unwrap();
         let mut cur_pos = (2, max_y + 3);
 
         loop {
-            let dx = pushes.next().unwrap();
+            let (push_idx, dx) = pushes.next().unwrap();
+            let top_of_grid: Vec<_> = grid.iter().rev().take(100).map(|v| *v).collect();
+            let cache_key = (shape_idx, push_idx, top_of_grid);
+            let cached = cache.get(&cache_key);
+            if cached.is_none() {
+                cache.insert(cache_key, (max_y, n_shapes));
+            } else {
+                let (cached_max_y, cached_n_shapes) = cache.get(&cache_key).unwrap();
+                let cycle_shapes = n_shapes - cached_n_shapes;
+                let cycle_height = max_y - cached_max_y;
+                let num_cycles = (num_shapes - n_shapes) / cycle_shapes;
+                max_y_offset += num_cycles * cycle_height;
+                n_shapes += num_cycles * cycle_shapes;
+                // cache should only be used once, can't be bothered to spend more time on this problem so just clearing it
+                cache.clear();
+            }
 
             // check walls after push
             let next_pos = (cur_pos.0 + dx, cur_pos.1);
@@ -125,9 +146,11 @@ fn process_shapes(input: &str, num_shapes: i64) -> String {
                 cur_pos = next_pos;
             }
         }
+
+        n_shapes += 1;
     }
 
-    max_y.to_string()
+    (max_y + max_y_offset).to_string()
 }
 
 pub fn process_part1(input: &str) -> String {
@@ -145,7 +168,6 @@ mod tests {
     use super::*;
 
     const EXAMPLE_INPUT: &str = ">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>";
-    const EXAMPLE_INPUTS: [(&str, &str, &str); 0] = [];
 
     #[test]
     fn part1() {
@@ -153,24 +175,8 @@ mod tests {
     }
 
     #[test]
-    fn part1_inputs() {
-        for (input, answer_part1, _) in EXAMPLE_INPUTS.iter() {
-            assert_eq!(process_part1(input), answer_part1.to_string());
-        }
-    }
-
-    #[test]
-    #[ignore]
     fn part2() {
         assert_eq!(process_part2(EXAMPLE_INPUT), "1514285714288");
-    }
-
-    #[test]
-    #[ignore]
-    fn part2_inputs() {
-        for (input, _, answer_part_2) in EXAMPLE_INPUTS.iter() {
-            assert_eq!(process_part2(input), answer_part_2.to_string());
-        }
     }
 
     #[test]
