@@ -1,0 +1,15 @@
+[package]
+name = "day-aoc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+itertools = "0.10.5"
+nom = "7.1.1"
+aoc_utils = { path = "../../aoc_utils" }
+glam = "0.22.0"
+petgraph = "0.6.2"
+
+[profile.release]
+lto = true
+codegen-units = 1
