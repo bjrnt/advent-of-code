@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{VecDeque, HashMap};
 
 trait TraveralStore<S>: Extend<S> {
     fn next_state(&mut self) -> Option<S>;
