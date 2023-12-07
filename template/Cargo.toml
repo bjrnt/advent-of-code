@@ -8,6 +8,9 @@ itertools = "0.12"
 nom = "7.1"
 aoc_utils = { path = "../../aoc_utils" }
 
+[dev-dependencies]
+rstest = "0.18"
+
 [profile.release]
 lto = true
 codegen-units = 1
