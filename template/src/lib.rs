@@ -8,27 +8,21 @@ pub fn process_part2(_input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use rstest::rstest;
     use super::*;
+    use rstest::rstest;
 
-    const EXAMPLE_INPUT: &str = "";
-
-    #[test]
-    fn part1() {
-        assert_eq!(process_part1(EXAMPLE_INPUT), "");
-    }
-
-    #[test]
-    #[ignore]
-    fn part2() {
-        assert_eq!(process_part2(EXAMPLE_INPUT), "");
+    #[rstest]
+    #[case("", "")]
+    #[trace]
+    fn test_part1(#[case] input: &str, #[case] expected: &str) {
+        assert_eq!(process_part1(input).as_str(), expected);
     }
 
     #[rstest]
-    #[case(0, 0)]
+    #[case("", "")]
     #[trace]
     #[ignore]
-    fn test_fn(#[case] input: u32, #[case] expected: u32) {
-        assert_eq!(input, expected);
+    fn test_part2(#[case] input: &str, #[case] expected: &str) {
+        assert_eq!(process_part2(input).as_str(), expected);
     }
 }
