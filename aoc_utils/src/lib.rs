@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 
 trait TraveralStore<S>: Extend<S> {
     fn next_state(&mut self) -> Option<S>;
@@ -97,6 +97,22 @@ pub fn gcd_of_two_numbers(a: usize, b: usize) -> usize {
         return a;
     }
     gcd_of_two_numbers(b, a % b)
+}
+
+pub fn print_graph<T: std::fmt::Debug>(graph: &HashMap<(i32, i32), T>) {
+    for y in 0.. {
+        for x in 0.. {
+            let Some(ch) = graph.get(&(x, y)) else {
+                if x == 0 {
+                    return;
+                } else {
+                    break;
+                }
+            };
+            print!("{:?}", ch);
+        }
+        print!("\n");
+    }
 }
 
 #[cfg(test)]
