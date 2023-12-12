@@ -1,75 +1,64 @@
-use std::collections::{HashMap, HashSet};
-
 use itertools::Itertools;
 
-fn parse_image(input: &str) -> Vec<(i32, i32)> {
-    let mut image: Vec<(i32, i32)> = vec![];
+fn parse_image(input: &str) -> Vec<(u64, u64)> {
+    let mut image: Vec<(u64, u64)> = vec![];
     for (y, line) in input.lines().enumerate() {
         for (x, ch) in line.chars().enumerate() {
             if ch == '#' {
-                image.push((x as i32, y as i32));
+                image.push((x as u64, y as u64));
             }
         }
     }
     image
 }
 
-fn expand_image(image: &Vec<(i32, i32)>, max_x: i32, max_y: i32) -> Vec<(i32, i32)> {
+fn expand_image(image: &Vec<(u64, u64)>, expansion_factor: u64) -> Vec<(u64, u64)> {
+    let max_x = image.iter().max_by_key(|(gx, _)| *gx).unwrap().0;
+    let max_y = image.iter().max_by_key(|(_, gy)| *gy).unwrap().1;
     let empty_rows = (0..max_y)
-        .filter(|y| !image.iter().any(|(_, gy)| gy == y))
+        .filter(|y| image.iter().all(|(_, gy)| gy != y))
         .collect_vec();
-    let mut expanded = image.clone();
-    for empty_row in empty_rows {
-        expanded = expanded
-            .iter()
-            .map(|&(gx, gy)| {
-                if gy > empty_row {
-                    (gx, gy + 1)
-                } else {
-                    (gx, gy)
-                }
-            })
-            .collect_vec();
-    }
     let empty_columns = (0..max_x)
-        .filter(|x| !image.iter().any(|(gx, _)| gx == x))
+        .filter(|x| image.iter().all(|(gx, _)| gx != x))
         .collect_vec();
-    for empty_column in empty_columns {
-        expanded = expanded
-            .iter()
-            .map(|&(gx, gy)| {
-                if gx > empty_column {
-                    (gx + 1, gy)
-                } else {
-                    (gx, gy)
-                }
-            })
-            .collect_vec();
-    }
-    expanded
+    image
+        .iter()
+        .map(|&(gx, gy)| {
+            (
+                gx + empty_columns.iter().filter(|c| gx > **c).count() as u64
+                    * (expansion_factor - 1),
+                gy + empty_rows.iter().filter(|c| gy > **c).count() as u64 * (expansion_factor - 1),
+            )
+        })
+        .collect_vec()
 }
 
 pub fn process_part1(input: &str) -> String {
-    let mut image = parse_image(input);
-    let max_y = input.lines().count() as i32;
-    let max_x = input.lines().next().unwrap().chars().count() as i32;
-    let expanded_image = expand_image(&mut image, max_x, max_y);
-    expanded_image
+    expand_image(&parse_image(input), 2)
         .into_iter()
         .combinations(2)
         .map(|galaxy_pair| {
             let [(x1, y1), (x2, y2)] = galaxy_pair.as_slice() else {
-                panic!("unexpected galaxy pair")
+                panic!("unexpected galaxy pair: {:?}", galaxy_pair)
             };
-            dbg!(&galaxy_pair, (x1 - x2).abs() + (y1 - y2).abs());
-            (x1 - x2).abs() + (y1 - y2).abs()
+            (*x1 as i64 - *x2 as i64).abs() as u64 + (*y1 as i64 - *y2 as i64).abs() as u64
         })
-        .sum::<i32>()
+        .sum::<u64>()
         .to_string()
 }
 
-pub fn process_part2(_input: &str) -> String {
-    "".to_string()
+pub fn process_part2(input: &str) -> String {
+    expand_image(&parse_image(input), 1_000_000)
+        .into_iter()
+        .combinations(2)
+        .map(|galaxy_pair| {
+            let [(x1, y1), (x2, y2)] = galaxy_pair.as_slice() else {
+                panic!("unexpected galaxy pair: {:?}", galaxy_pair)
+            };
+            (*x1 as i64 - *x2 as i64).abs() as u64 + (*y1 as i64 - *y2 as i64).abs() as u64
+        })
+        .sum::<u64>()
+        .to_string()
 }
 
 #[cfg(test)]
@@ -78,6 +67,25 @@ mod tests {
     use rstest::rstest;
 
     #[rstest]
+    #[case(
+        "#.#
+        ...
+#.#",
+        "24"
+    )]
+    #[case(
+        "#
+.
+.
+#", "5"
+    )]
+    #[case("#..#", "5")]
+    #[case(
+        "#..
+...
+..#",
+        "6"
+    )]
     #[case(
         "...#......
 .......#..
@@ -94,13 +102,5 @@ mod tests {
     #[trace]
     fn test_part1(#[case] input: &str, #[case] expected: &str) {
         assert_eq!(process_part1(input).as_str(), expected);
-    }
-
-    #[rstest]
-    #[case("", "")]
-    #[trace]
-    #[ignore]
-    fn test_part2(#[case] input: &str, #[case] expected: &str) {
-        assert_eq!(process_part2(input).as_str(), expected);
     }
 }
