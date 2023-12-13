@@ -1,8 +1,5 @@
 pub fn process_part1(input: &str) -> String {
-    format!(
-        "{}",
-        input.lines().into_iter().map(process_line).sum::<u32>()
-    )
+    input.lines().map(process_line).sum::<u32>().to_string()
 }
 
 fn process_line(line: &str) -> u32 {
@@ -14,51 +11,33 @@ fn process_line(line: &str) -> u32 {
 }
 
 pub fn process_part2(input: &str) -> String {
-    format!(
-        "{}",
-        input
-            .lines()
-            .into_iter()
-            .map(process_line_part2)
-            .sum::<u32>()
-    )
+    input
+        .lines()
+        .map(process_line_part2)
+        .sum::<u32>()
+        .to_string()
 }
 
 fn process_line_part2(line: &str) -> u32 {
     let digits = line
         .char_indices()
-        .filter_map(|(i, c)| {
-            let numerical_digit = c.to_digit(10);
-            if numerical_digit.is_some() {
-                return numerical_digit;
-            };
-            return parse_digit_letters(&line[i..line.len()]);
-        })
+        .filter_map(|(i, c)| c.to_digit(10).or_else(|| parse_digit_letters(&line[i..])))
         .collect::<Vec<u32>>();
     digits[0] * 10 + digits.last().unwrap()
 }
 
 fn parse_digit_letters(input: &str) -> Option<u32> {
-    if input.starts_with("one") {
-        Some(1)
-    } else if input.starts_with("two") {
-        Some(2)
-    } else if input.starts_with("three") {
-        Some(3)
-    } else if input.starts_with("four") {
-        Some(4)
-    } else if input.starts_with("five") {
-        Some(5)
-    } else if input.starts_with("six") {
-        Some(6)
-    } else if input.starts_with("seven") {
-        Some(7)
-    } else if input.starts_with("eight") {
-        Some(8)
-    } else if input.starts_with("nine") {
-        Some(9)
-    } else {
-        None
+    match input {
+        i if i.starts_with("one") => Some(1),
+        i if i.starts_with("two") => Some(2),
+        i if i.starts_with("three") => Some(3),
+        i if i.starts_with("four") => Some(4),
+        i if i.starts_with("five") => Some(5),
+        i if i.starts_with("six") => Some(6),
+        i if i.starts_with("seven") => Some(7),
+        i if i.starts_with("eight") => Some(8),
+        i if i.starts_with("nine") => Some(9),
+        _ => None,
     }
 }
 

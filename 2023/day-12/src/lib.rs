@@ -18,7 +18,7 @@ enum Record {
     Unknown,
 }
 
-fn parse_row(input: &str) -> IResult<&str, (Vec<Record>, Vec<u64>)> {
+fn parse_row(input: &str) -> IResult<&str, (Vec<Record>, Vec<usize>)> {
     separated_pair(
         many1(alt((
             complete::char('#').map(|_| Damaged),
@@ -26,84 +26,61 @@ fn parse_row(input: &str) -> IResult<&str, (Vec<Record>, Vec<u64>)> {
             complete::char('?').map(|_| Unknown),
         ))),
         space1,
-        separated_list1(tag(","), complete::u64),
+        separated_list1(tag(","), complete::u64.map(|v| v as usize)),
     )(input)
 }
 
-fn parse_rows(input: &str) -> IResult<&str, Vec<(Vec<Record>, Vec<u64>)>> {
+fn parse_rows(input: &str) -> IResult<&str, Vec<(Vec<Record>, Vec<usize>)>> {
     separated_list1(newline, parse_row)(input)
 }
 
-fn calculate_arrangements(
-    cache: &mut HashMap<(Vec<Record>, Vec<u64>), u64>,
-    records: Vec<Record>,
-    groups: Vec<u64>,
-) -> u64 {
+fn calculate_arrangements<'a>(
+    cache: &mut HashMap<(&'a [Record], &'a [usize]), usize>,
+    records: &'a [Record],
+    groups: &'a [usize],
+) -> usize {
     if records.is_empty() {
-        return if groups.is_empty() { 1 } else { 0 };
+        return groups.is_empty() as usize;
     }
 
-    if let Some(value) = cache.get(&(records.clone(), groups.clone())) {
+    if groups.is_empty() {
+        return !records.contains(&Damaged) as usize;
+    }
+
+    if let Some(value) = cache.get(&(records, groups)) {
         return *value;
     }
 
-    let permutations = match *records.first().unwrap() {
-        Operational => calculate_arrangements(cache, records[1..].to_vec(), groups.clone()),
-        Unknown => {
-            let mut with_damaged = records.clone();
-            with_damaged[0] = Damaged;
-            let mut with_operational = records.clone();
-            with_operational[0] = Operational;
-            calculate_arrangements(cache, with_damaged, groups.clone())
-                + calculate_arrangements(cache, with_operational, groups.clone())
-        }
-        Damaged => {
-            if groups.len() == 0 {
-                0
-            } else {
-                let want_damaged = *groups.first().unwrap() as usize;
+    let mut permutations = 0;
 
-                if want_damaged <= records.len()
-                    && records
-                        .iter()
-                        .take(want_damaged)
-                        .all(|c| c == &Unknown || c == &Damaged)
-                {
-                    let new_groups = groups[1..].to_vec();
-                    if want_damaged == records.len() {
-                        if new_groups.is_empty() {
-                            1
-                        } else {
-                            0
-                        }
-                    } else if records[want_damaged] == Operational {
-                        calculate_arrangements(
-                            cache,
-                            records[want_damaged + 1..].to_vec(),
-                            new_groups,
-                        )
-                    } else if records[want_damaged] == Unknown {
-                        let mut new_records = records.clone();
-                        new_records[want_damaged] = Operational;
-                        calculate_arrangements(
-                            cache,
-                            new_records[want_damaged..].to_vec(),
-                            new_groups,
-                        )
-                    } else {
-                        0
-                    }
-                } else {
-                    0
-                }
-            }
-        }
-    };
-    cache.insert((records.clone(), groups.clone()), permutations);
+    let next_record = *records.first().unwrap();
+
+    if next_record == Operational || next_record == Unknown {
+        permutations += calculate_arrangements(cache, &records[1..], groups);
+    }
+
+    if (next_record == Damaged || next_record == Unknown)
+        && groups[0] <= records.len()
+        && !records[..groups[0]].contains(&Operational)
+        && (records.len() == groups[0] || records[groups[0]] != Damaged)
+    {
+        permutations += calculate_arrangements(
+            cache,
+            if groups[0] + 1 > records.len() {
+                &[]
+            } else {
+                &records[groups[0] + 1..]
+            },
+            &groups[1..],
+        )
+    }
+
+    cache.insert((records, groups), permutations);
+
     permutations
 }
 
-fn expand_row(records: Vec<Record>, groups: Vec<u64>) -> (Vec<Record>, Vec<u64>) {
+fn expand_row(records: Vec<Record>, groups: Vec<usize>) -> (Vec<Record>, Vec<usize>) {
     let new_records = itertools::Itertools::intersperse(
         std::iter::repeat(records.into_iter()).take(5),
         vec![Unknown].into_iter(),
@@ -120,21 +97,23 @@ fn expand_row(records: Vec<Record>, groups: Vec<u64>) -> (Vec<Record>, Vec<u64>)
 pub fn process_part1(input: &str) -> String {
     let (input, rows) = parse_rows(input).unwrap();
     debug_assert_eq!(input, "");
-    let mut cache = HashMap::new();
     rows.into_iter()
-        .map(|(records, groups)| calculate_arrangements(&mut cache, records, groups))
-        .sum::<u64>()
+        .map(|(records, groups)| {
+            calculate_arrangements(&mut HashMap::new(), records.as_slice(), groups.as_slice())
+        })
+        .sum::<usize>()
         .to_string()
 }
 
 pub fn process_part2(input: &str) -> String {
     let (input, rows) = parse_rows(input).unwrap();
     debug_assert_eq!(input, "");
-    let mut cache = HashMap::new();
     rows.into_iter()
         .map(|(records, groups)| expand_row(records, groups))
-        .map(|(records, groups)| calculate_arrangements(&mut cache, records, groups))
-        .sum::<u64>()
+        .map(|(records, groups)| {
+            calculate_arrangements(&mut HashMap::new(), records.as_slice(), groups.as_slice())
+        })
+        .sum::<usize>()
         .to_string()
 }
 
@@ -167,11 +146,11 @@ mod tests {
     #[case("????.######..#####. 1,6,5", 4)]
     #[case("?###???????? 3,2,1", 10)]
     #[trace]
-    fn test_arrangements(#[case] input: &str, #[case] expected: u64) {
+    fn test_arrangements(#[case] input: &str, #[case] expected: usize) {
         let mut cache = HashMap::new();
         let (_, (records, groups)) = parse_row(input).unwrap();
         assert_eq!(
-            calculate_arrangements(&mut cache, records, groups),
+            calculate_arrangements(&mut cache, records.as_slice(), groups.as_slice()),
             expected
         );
     }

@@ -52,7 +52,7 @@ fn parse_map(input: &str) -> IResult<&str, Vec<(Range<u64>, u64)>> {
     separated_list1(newline, parse_range)(input)
 }
 
-fn lookup_in_map(map: &Vec<(Range<u64>, u64)>, val: &u64) -> u64 {
+fn lookup_in_map(map: &[(Range<u64>, u64)], val: &u64) -> u64 {
     let Some((source_range, destination_range_start)) = map.iter().find(|(r, _)| r.contains(val))
     else {
         return *val;

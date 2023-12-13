@@ -65,7 +65,7 @@ pub fn process_part2(input: &str) -> String {
 
     let starting_nodes: Vec<&str> = graph
         .keys()
-        .filter(|node| node.ends_with("A"))
+        .filter(|node| node.ends_with('A'))
         .cloned()
         .collect();
     let cycle_lengths: Vec<usize> = starting_nodes
@@ -79,8 +79,8 @@ pub fn process_part2(input: &str) -> String {
                     (starting_node, 0),
                     |(current_node, total_steps), next_step| {
                         let current_node_seen_at =
-                            seen_at.entry(&current_node).or_insert(total_steps);
-                        if current_node.ends_with("Z") && *current_node_seen_at < total_steps {
+                            seen_at.entry(current_node).or_insert(total_steps);
+                        if current_node.ends_with('Z') && *current_node_seen_at < total_steps {
                             Done((current_node, total_steps - *current_node_seen_at))
                         } else {
                             let (left, right) = graph.get(current_node).unwrap();

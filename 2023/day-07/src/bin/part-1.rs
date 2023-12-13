@@ -7,7 +7,7 @@ use nom::{
 use std::collections::HashMap;
 use std::fs;
 
-fn to_hand_type(cards: &Vec<u8>) -> u8 {
+fn to_hand_type(cards: &[u8]) -> u8 {
     let mut freq: HashMap<u8, usize> = HashMap::new();
 
     cards.iter().for_each(|c| {
@@ -28,28 +28,28 @@ fn to_hand_type(cards: &Vec<u8>) -> u8 {
     }
 }
 
-fn to_card(value: char) -> Option<u8> {
+fn to_card(value: char) -> u8 {
     match value {
-        '2' => Some(2),
-        '3' => Some(3),
-        '4' => Some(4),
-        '5' => Some(5),
-        '6' => Some(6),
-        '7' => Some(7),
-        '8' => Some(8),
-        '9' => Some(9),
-        'T' => Some(10),
-        'J' => Some(11),
-        'Q' => Some(12),
-        'K' => Some(13),
-        'A' => Some(14),
-        _ => None,
+        '2' => 2,
+        '3' => 3,
+        '4' => 4,
+        '5' => 5,
+        '6' => 6,
+        '7' => 7,
+        '8' => 8,
+        '9' => 9,
+        'T' => 10,
+        'J' => 11,
+        'Q' => 12,
+        'K' => 13,
+        'A' => 14,
+        _ => panic!("unexpected card character: {}", value),
     }
 }
 
 fn parse_hand_and_bet(input: &str) -> IResult<&str, (Vec<u8>, u32)> {
     let (input, card_chars) = alphanumeric1(input)?;
-    let cards = card_chars.chars().map(|c| to_card(c).unwrap()).collect();
+    let cards = card_chars.chars().map(to_card).collect();
     let (input, _) = space1(input)?;
     let (input, bet) = nom::character::complete::u32(input)?;
     Ok((input, (cards, bet)))

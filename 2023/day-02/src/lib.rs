@@ -42,7 +42,7 @@ fn parse_round(input: &str) -> IResult<&str, Game> {
             Color::Blue => game.blue = Some(count),
         };
     }
-    return Ok((input, game));
+    Ok((input, game))
 }
 
 fn parse_rounds(input: &str) -> IResult<&str, Vec<Game>> {
@@ -53,7 +53,7 @@ fn parse_game(input: &str) -> IResult<&str, (u32, Vec<Game>)> {
     let (input, id) = preceded(tag("Game "), nom::character::complete::u32)(input)?;
     let (input, _) = tag(": ")(input)?;
     let (input, rounds) = parse_rounds(input)?;
-    return Ok((input, (id, rounds)));
+    Ok((input, (id, rounds)))
 }
 
 fn parse_games(input: &str) -> IResult<&str, Vec<(u32, Vec<Game>)>> {
@@ -66,7 +66,7 @@ const MAX_BLUE: u32 = 14;
 
 pub fn process_part1(input: &str) -> String {
     let (_, games) = parse_games(input).unwrap();
-    let ids = games
+    games
         .iter()
         .filter_map(|(id, rounds)| {
             if !rounds.iter().all(|round| {
@@ -76,15 +76,15 @@ pub fn process_part1(input: &str) -> String {
             }) {
                 return None;
             }
-            return Some(id);
+            Some(id)
         })
-        .collect::<Vec<&u32>>();
-    format!("{}", ids.into_iter().sum::<u32>())
+        .sum::<u32>()
+        .to_string()
 }
 
 pub fn process_part2(input: &str) -> String {
     let (_, games) = parse_games(input).unwrap();
-    let sum = games
+    games
         .iter()
         .map(|(_, rounds)| {
             let fewest_red = rounds.iter().max_by_key(|r| r.red).unwrap().red.unwrap();
@@ -97,8 +97,8 @@ pub fn process_part2(input: &str) -> String {
             let fewest_blue = rounds.iter().max_by_key(|r| r.blue).unwrap().blue.unwrap();
             fewest_red * fewest_green * fewest_blue
         })
-        .sum::<u32>();
-    format!("{}", sum)
+        .sum::<u32>()
+        .to_string()
 }
 
 #[cfg(test)]

@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{hash_map::Entry, HashMap, HashSet, VecDeque};
 
 use nom::{
     bytes::complete::tag,
@@ -36,8 +36,7 @@ pub fn process_part1(input: &str) -> String {
             if num_winning_cards == 0 {
                 return 0;
             };
-            let points = (2 as u32).pow(num_winning_cards - 1);
-            points
+            (2u32).pow(num_winning_cards - 1)
         })
         .sum::<u32>()
         .to_string()
@@ -57,16 +56,18 @@ pub fn process_part2(input: &str) -> String {
     let mut total_cards = 0;
     while let Some(card_number) = to_process.pop_front() {
         total_cards += 1;
-        let num_winning_cards = if match_cache.contains_key(&card_number) {
-            *match_cache.get(&card_number).unwrap()
-        } else {
+
+        let num_winning_cards = if let Entry::Vacant(e) = match_cache.entry(card_number) {
             let (winning, my) = cards.get(&card_number).unwrap();
             let winning_set: HashSet<u32> = winning.clone().into_iter().collect();
             let num_winning_cards =
-                my.into_iter().filter(|c| winning_set.contains(c)).count() as u32;
-            match_cache.insert(card_number, num_winning_cards);
+                my.iter().filter(|c| winning_set.contains(c)).count() as u32;
+            e.insert(num_winning_cards);
             num_winning_cards
+        } else {
+            *match_cache.get(&card_number).unwrap()
         };
+
         for extra_card in card_number + 1..=card_number + num_winning_cards {
             to_process.push_back(extra_card);
         }

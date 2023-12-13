@@ -26,24 +26,25 @@ pub fn process_part1(input: &str) -> String {
     let starting_pipes = graph
         .iter()
         .filter(|((x, y), ch)| pipe_neighbors(*x, *y, **ch).contains(&starting_position))
-        .map(|(p, c)| (*p, *c, 1))
+        .map(|(p, _)| (*p, 1))
         .collect_vec();
+
     let mut seen: HashSet<(i32, i32)> = HashSet::new();
-    let mut queue = VecDeque::from(starting_pipes);
-    let mut max_distance = 0;
-    while let Some(((x, y), ch, distance)) = queue.pop_front() {
+    let mut max_distance = 1;
+
+    aoc_utils::complete_bfs(starting_pipes.into_iter(), |((x, y), distance)| {
+        let ch = graph.get(&(x, y)).unwrap();
         if distance > max_distance {
             max_distance = distance;
         }
-
-        for neighbor in pipe_neighbors(x, y, ch) {
-            if let Some(ch) = graph.get(&neighbor) {
-                if seen.insert(neighbor) {
-                    queue.push_back((neighbor, *ch, distance + 1));
-                }
-            }
-        }
-    }
+        Some(
+            pipe_neighbors(x, y, *ch)
+                .into_iter()
+                .filter(|p| graph.get(p).is_some() && seen.insert(*p))
+                .map(|p| (p, distance + 1))
+                .collect_vec(),
+        )
+    });
 
     max_distance.to_string()
 }
@@ -75,7 +76,7 @@ pub fn process_part2(input: &str) -> String {
     }
 
     let starting_pipes_positions = starting_pipes.iter().map(|(p, _, _)| p).collect_vec();
-    let potential_starting_characters = vec!['|', '-', 'L', 'J', 'F', '7'];
+    let potential_starting_characters = ['|', '-', 'L', 'J', 'F', '7'];
     let starting_character = potential_starting_characters
         .iter()
         .find(|symbol| {
@@ -96,7 +97,7 @@ pub fn process_part2(input: &str) -> String {
 }
 
 fn ray_trace(y: i32, graph: &HashMap<(i32, i32), char>) -> usize {
-    let flip_on_chars = vec!['F', '|', '7'];
+    let flip_on_chars = ['F', '|', '7'];
     let mut x = 0;
     let mut is_inside = false;
     let mut symbols_inside = 0;
