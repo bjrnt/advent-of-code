@@ -99,6 +99,13 @@ pub fn gcd_of_two_numbers(a: usize, b: usize) -> usize {
     gcd_of_two_numbers(b, a % b)
 }
 
+#[inline]
+pub fn grid_bounds(input: &str) -> (usize, usize) {
+    let max_y = input.lines().count();
+    let max_x = input.lines().next().unwrap().len();
+    (max_x, max_y)
+}
+
 pub fn print_graph<T: std::fmt::Debug>(graph: &HashMap<(i32, i32), T>) {
     for y in 0.. {
         for x in 0.. {
