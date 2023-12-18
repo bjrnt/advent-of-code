@@ -1,0 +1,14 @@
+work day: 
+    code ./{{day}}
+    cargo watch -w {{day}} -x "check -p {{day}}" -s "just test {{day}}" -s "just lint {{day}}"
+test day:
+    cargo nextest run -p {{day}}
+lint day:
+    cargo clippy -p {{day}}
+bench day:
+    cargo bench -p {{day}} >> ./{{day}}/bench.txt
+run day part:
+    cargo run -p {{day}} --bin {{part}} --profile release
+create day:
+    cargo generate --path ./template --name {{day}}
+    just work {{day}}

@@ -1,4 +1,4 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::VecDeque;
 
 trait TraveralStore<S>: Extend<S> {
     fn next_state(&mut self) -> Option<S>;
@@ -104,22 +104,6 @@ pub fn grid_bounds(input: &str) -> (usize, usize) {
     let max_y = input.lines().count();
     let max_x = input.lines().next().unwrap().len();
     (max_x, max_y)
-}
-
-pub fn print_graph<T: std::fmt::Debug>(graph: &HashMap<(i32, i32), T>) {
-    for y in 0.. {
-        for x in 0.. {
-            let Some(ch) = graph.get(&(x, y)) else {
-                if x == 0 {
-                    return;
-                } else {
-                    break;
-                }
-            };
-            print!("{:?}", ch);
-        }
-        print!("\n");
-    }
 }
 
 #[cfg(test)]

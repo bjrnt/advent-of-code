@@ -1,17 +1,18 @@
 [package]
-name = "day-18"
+name = "{{project-name}}"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 itertools = { workspace = true }
 nom = { workspace = true }
+aoc_utils = { workspace = true }
 
 [dev-dependencies]
 rstest = { workspace = true }
 criterion = { workspace = true }
 
 [[bench]]
-name = "day-18-bench"
+name = "{{project-name}}-bench"
 path = "benches/benchmark.rs"
 harness = false

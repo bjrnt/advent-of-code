@@ -1,4 +1,4 @@
-use day_aoc::process_part2;
+use day_18::process_part2;
 use std::fs;
 
 fn main() {
