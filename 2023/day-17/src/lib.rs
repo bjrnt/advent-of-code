@@ -57,42 +57,22 @@ fn next_steps(
     grid: &HashMap<(i32, i32), u32>,
     heat_so_far: u32,
     (x, y): (i32, i32),
-    prev_dir: Direction,
+    new_dir: Direction,
     is_ultra_crucible: bool,
 ) -> Vec<((i32, i32), Direction, u32)> {
-    let r_start = if is_ultra_crucible { 4 } else { 1 };
-    let r_end = if is_ultra_crucible { 10 } else { 3 };
+    let (min_steps, max_steps) = if is_ultra_crucible { (4, 10) } else { (1, 4) };
     let mut next_states = vec![];
-    {
-        let ld = prev_dir.turn_ccw();
-        let (lx, ly) = ld.delta();
-        let mut lh = heat_so_far;
-        for total_steps in 1..=r_end {
-            let lp = (x + lx * total_steps, y + ly * total_steps);
-            if let Some(h) = grid.get(&lp) {
-                lh += h;
-                if total_steps >= r_start {
-                    next_states.push((lp, ld, lh));
-                }
-            } else {
-                break;
+    let (dx, dy) = new_dir.delta();
+    let mut nh = heat_so_far;
+    for total_steps in 1..=max_steps {
+        let np = (x + dx * total_steps, y + dy * total_steps);
+        if let Some(h) = grid.get(&np) {
+            nh += h;
+            if total_steps >= min_steps {
+                next_states.push((np, new_dir, nh));
             }
-        }
-    }
-    {
-        let rd = prev_dir.turn_cw();
-        let (rx, ry) = rd.delta();
-        let mut rh = heat_so_far;
-        for total_steps in 1..=r_end {
-            let rp = (x + rx * total_steps, y + ry * total_steps);
-            if let Some(h) = grid.get(&rp) {
-                rh += h;
-                if total_steps >= r_start {
-                    next_states.push((rp, rd, rh));
-                }
-            } else {
-                break;
-            }
+        } else {
+            break;
         }
     }
     next_states
@@ -130,7 +110,17 @@ fn djikstras(
             continue;
         }
 
-        for (p, d, h) in next_steps(grid, heat_loss, p, prev_dir, is_ultra_crucible) {
+        let next_states = next_steps(grid, heat_loss, p, prev_dir.turn_cw(), is_ultra_crucible)
+            .into_iter()
+            .chain(next_steps(
+                grid,
+                heat_loss,
+                p,
+                prev_dir.turn_ccw(),
+                is_ultra_crucible,
+            ));
+
+        for (p, d, h) in next_states {
             let best_so_far = min_heat.entry((p, d)).or_insert(u32::MAX);
             if h < *best_so_far {
                 *best_so_far = h;

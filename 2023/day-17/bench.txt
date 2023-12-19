@@ -1,0 +1,122 @@
+
+running 3 tests
+test tests::test_part1::case_1 ... ignored
+test tests::test_part2::case_1 ... ignored
+test tests::test_part2::case_2 ... ignored
+
+test result: ok. 0 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+day_17::part1/part1     time:   [46.033 ms 46.499 ms 47.008 ms]
+Found 12 outliers among 100 measurements (12.00%)
+  2 (2.00%) high mild
+  10 (10.00%) high severe
+
+day_17::part2/part2     time:   [93.311 ms 95.523 ms 98.190 ms]
+Found 9 outliers among 100 measurements (9.00%)
+  6 (6.00%) high mild
+  3 (3.00%) high severe
+
+
+running 2 tests
+test tests::test_part1::case_1 ... ignored
+test tests::test_part2::case_1 ... ignored
+
+test result: ok. 0 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+day_17::part1/part1     time:   [78.092 ms 78.316 ms 78.553 ms]
+                        change: [+66.518% +68.427% +70.162%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 3 outliers among 100 measurements (3.00%)
+  3 (3.00%) high mild
+
+day_17::part2/part2     time:   [235.72 ms 238.38 ms 241.39 ms]
+                        change: [+142.02% +149.55% +156.26%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 13 outliers among 100 measurements (13.00%)
+  7 (7.00%) high mild
+  6 (6.00%) high severe
+
+
+running 3 tests
+test tests::test_part1::case_1 ... ignored
+test tests::test_part2::case_1 ... ignored
+test tests::test_part2::case_2 ... ignored
+
+test result: ok. 0 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+day_17::part1/part1     time:   [44.067 ms 44.624 ms 45.246 ms]
+                        change: [-43.704% -43.021% -42.295%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 14 outliers among 100 measurements (14.00%)
+  7 (7.00%) high mild
+  7 (7.00%) high severe
+
+day_17::part2/part2     time:   [89.026 ms 90.601 ms 92.334 ms]
+                        change: [-62.792% -61.993% -61.142%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 2 outliers among 100 measurements (2.00%)
+  1 (1.00%) high mild
+  1 (1.00%) high severe
+
+
+running 3 tests
+test tests::test_part1::case_1 ... ignored
+test tests::test_part2::case_1 ... ignored
+test tests::test_part2::case_2 ... ignored
+
+test result: ok. 0 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+day_17::part1/part1     time:   [59.216 ms 59.894 ms 60.673 ms]
+                        change: [+31.943% +34.219% +36.544%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 10 outliers among 100 measurements (10.00%)
+  3 (3.00%) high mild
+  7 (7.00%) high severe
+
+day_17::part2/part2     time:   [103.74 ms 104.51 ms 105.42 ms]
+                        change: [+12.974% +15.352% +17.633%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 6 outliers among 100 measurements (6.00%)
+  3 (3.00%) high mild
+  3 (3.00%) high severe
+

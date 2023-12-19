@@ -1,16 +1,18 @@
 [package]
-name = "day-aoc"
+name = "day-17"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-itertools = "0.12"
-nom = "7.1"
-aoc_utils = { path = "../../aoc_utils" }
+itertools = { workspace = true }
+nom = { workspace = true }
+aoc_utils = { workspace = true }
 
 [dev-dependencies]
-rstest = "0.18"
+rstest = { workspace = true }
+criterion = { workspace = true }
 
-[profile.release]
-lto = true
-codegen-units = 1
+[[bench]]
+name = "day-17-bench"
+path = "benches/benchmark.rs"
+harness = false

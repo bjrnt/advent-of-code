@@ -1,7 +1,6 @@
-use day_aoc::process_part1;
-use std::fs;
+use day_17::process_part1;
 
 fn main() {
-    let file = fs::read_to_string("./input.txt").unwrap();
-    println!("{}", process_part1(file.as_str()));
+    let file = include_str!("../../input.txt");
+    println!("{}", process_part1(file));
 }
